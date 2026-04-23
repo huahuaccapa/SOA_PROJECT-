@@ -1,3 +1,5 @@
+// src/components/DashboardLayout.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -7,8 +9,9 @@ import {
   PieChart, CheckCircle, XCircle, Search, Bell, Menu, X,
   ShoppingBag, Heart, Star, Award, Truck, CreditCard,
   LogOut, User, MapPin, MessageSquare, Cpu, Sparkles,
-  Grid, List, SlidersHorizontal, ArrowUpDown
+  Grid, List, SlidersHorizontal, ArrowUpDown, Tag
 } from 'lucide-react';
+import authService from '../services/authService';
 
 // Componente FileText centralizado
 export const FileText = ({ size = 24 }) => (
@@ -32,12 +35,12 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Notificaciones de ejemplo
+  // Notificaciones de ejemplo en el header
   const [notifications] = useState([
-    { id: 1, type: 'success', icon: CheckCircle, title: 'Pedido completado', message: 'Tu pedido #ORD-123 ha sido entregado exitosamente', time: 'Hace 5 min', read: false },
-    { id: 2, type: 'warning', icon: AlertTriangle, title: 'Stock bajo', message: 'El producto "Laptop Pro X1" está por agotarse', time: 'Hace 1 hora', read: false },
-    { id: 3, type: 'info', icon: Truck, title: 'Envío en camino', message: 'Tu paquete está en ruta de entrega', time: 'Hace 3 horas', read: true },
-    { id: 4, type: 'success', icon: Award, title: 'Â¡Nivel Gold alcanzado!', message: 'Has alcanzado el nivel Gold con 1000 puntos', time: 'Hace 1 dÃ­a', read: true },
+    { id: 1, type: 'success', icon: CheckCircle, title: 'Pedido completado', message: 'Tu pedido #ORD-101 ha sido entregado exitosamente', time: 'Hace 5 min', read: false },
+    { id: 2, type: 'warning', icon: AlertTriangle, title: 'Stock bajo', message: 'El producto "Tablet Air M2" está por agotarse', time: 'Hace 1 hora', read: false },
+    { id: 3, type: 'info', icon: Truck, title: 'Envío en camino', message: 'Tu pedido #ORD-102 está en ruta de entrega', time: 'Hace 3 horas', read: true },
+    { id: 4, type: 'success', icon: Award, title: '¡Nivel Gold!', message: 'Has alcanzado el nivel Gold con 1000 puntos', time: 'Hace 1 día', read: true },
   ]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -141,7 +144,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
           {
             section: 'Ofertas',
             items: [
-              { id: 'offers', icon: Award, label: 'Ofertas Especiales', path: '/dashboard?tab=offers' },
+              { id: 'offers', icon: Tag, label: 'Ofertas Especiales', path: '/dashboard?tab=offers' },
               { id: 'cart', icon: ShoppingCart, label: 'Carrito', path: '/carrito' }
             ]
           },
@@ -170,10 +173,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_data');
-    sessionStorage.removeItem('is_guest');
+    authService.logout();
     navigate('/login');
   };
 
@@ -190,6 +190,9 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
     }
     setMobileMenuOpen(false);
   };
+
+  const displayUser = user || authService.getUserData();
+  const displayRole = role || authService.getUserRole();
 
   return (
     <div className={`dashboard-wrapper ${sidebarCollapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
@@ -246,7 +249,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
             ))}
           </nav>
 
-          {role && role !== 'GUEST' && (
+          {displayRole && displayRole !== 'GUEST' && (
             <div className="sidebar-footer">
               <button 
                 className="nav-link logout-btn"
@@ -274,8 +277,8 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
             
             <div className="page-context">
               <h2 className="current-page">
-                {role === 'ADMIN' ? 'Panel de Administración' : 
-                 role === 'USER' ? 'Mi Cuenta' : 'TechStore'}
+                {displayRole === 'ADMIN' ? 'Panel de Administración' : 
+                 displayRole === 'USER' ? 'Mi Cuenta' : 'TechStore'}
               </h2>
             </div>
           </div>
@@ -300,7 +303,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
               <Grid size={20} />
             </button>
 
-            {role !== 'ADMIN' && (
+            {displayRole !== 'ADMIN' && (
               <button 
                 className="icon-btn" 
                 onClick={() => navigate('/carrito')}
@@ -310,7 +313,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
               </button>
             )}
 
-            {role && role !== 'GUEST' && (
+            {displayRole && displayRole !== 'GUEST' && (
               <div className="notification-area">
                 <button 
                   className="icon-btn notification-btn"
@@ -356,7 +359,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
               </div>
             )}
 
-            {role && role !== 'GUEST' && user && (
+            {displayRole && displayRole !== 'GUEST' && displayUser && (
               <div className="user-area">
                 <button 
                   className="user-menu-btn"
@@ -367,17 +370,17 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
                   }}
                 >
                   <div className="avatar">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.fullName || 'Usuario'} />
+                    {displayUser.avatar ? (
+                      <img src={displayUser.avatar} alt={displayUser.fullName || 'Usuario'} />
                     ) : (
                       <span className="avatar-text">
-                        {user.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
+                        {displayUser.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
                       </span>
                     )}
                   </div>
                   <div className="user-details">
-                    <span className="user-name">{user.fullName || 'Usuario'}</span>
-                    <span className="user-role">{role}</span>
+                    <span className="user-name">{displayUser.fullName || 'Usuario'}</span>
+                    <span className="user-role">{displayRole}</span>
                   </div>
                 </button>
 
@@ -385,24 +388,24 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
                   <div className="dropdown user-dropdown" onClick={e => e.stopPropagation()}>
                     <div className="dropdown-header">
                       <div className="avatar large">
-                        {user.avatar ? (
-                          <img src={user.avatar} alt={user.fullName || 'Usuario'} />
+                        {displayUser.avatar ? (
+                          <img src={displayUser.avatar} alt={displayUser.fullName || 'Usuario'} />
                         ) : (
                           <span className="avatar-text">
-                            {user.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
+                            {displayUser.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
                           </span>
                         )}
                       </div>
                       <div>
-                        <p className="user-name">{user.fullName || 'Usuario'}</p>
-                        <p className="user-email">{user.email || 'usuario@email.com'}</p>
+                        <p className="user-name">{displayUser.fullName || 'Usuario'}</p>
+                        <p className="user-email">{displayUser.email || 'usuario@email.com'}</p>
                       </div>
                     </div>
                     <div className="dropdown-body">
                       <button onClick={() => { if(onTabChange) onTabChange('profile'); setShowUserMenu(false); }}>
                         <User size={16} /> Mi Perfil
                       </button>
-                      {role === 'ADMIN' && (
+                      {displayRole === 'ADMIN' && (
                         <button onClick={() => { if(onTabChange) onTabChange('settings'); setShowUserMenu(false); }}>
                           <Settings size={16} /> Configuración
                         </button>
@@ -421,7 +424,7 @@ const DashboardLayout = ({ children, user, role, activeTab, onTabChange }) => {
               </div>
             )}
 
-            {role === 'GUEST' && (
+            {displayRole === 'GUEST' && (
               <div className="auth-buttons">
                 <button className="btn btn-outline" onClick={() => navigate('/login')}>
                   Iniciar Sesión
