@@ -1,5 +1,4 @@
-/*src\App.css */
-
+/* src/App.css */
 /* ============================================
    DASHBOARD REDESIGN - MODERN & ELEGANT
    ============================================ */
@@ -211,6 +210,7 @@ body {
   position: relative;
   width: 100%;
   text-align: left;
+  text-decoration: none;
 }
 
 .nav-link:hover {
@@ -251,12 +251,12 @@ body {
 }
 
 .logout-btn {
-  color: var(--danger);
+  color: var(--danger) !important;
 }
 
 .logout-btn:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--danger-bg) !important;
+  color: var(--danger) !important;
 }
 
 /* Sidebar colapsado */
@@ -701,6 +701,24 @@ body {
   padding: 0.5rem;
 }
 
+/* Botones de autenticación */
+.auth-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.btn-outline:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--primary);
+}
+
 /* ============================================
    CONTENIDO DE PÁGINA
    ============================================ */
@@ -815,6 +833,7 @@ body {
     right: -50px;
   }
 }
+
 /* ============================================
    ESTILOS ADICIONALES PARA COMPONENTES
    ============================================ */
@@ -833,6 +852,7 @@ body {
   transition: all var(--transition-fast);
   border: none;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn-primary {
@@ -2100,6 +2120,47 @@ body {
 
 .stats-summary .stat-value {
   font-size: 1.5rem;
+}
+
+/* ===== PAGE HEADER ===== */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-header p {
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.page-header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* ===== RESPONSIVE ===== */

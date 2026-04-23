@@ -260,7 +260,11 @@ const Catalogo = () => {
                 
                 <div className="product-footer">
                   <div className="price-stock">
-                    <span className="product-price">${product.price.toLocaleString()}</span>
+                    {/* ✅ SOLO CAMBIO AQUÍ */}
+                    <span className="product-price">
+                      S/ {product.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                    </span>
+
                     <span className={`stock-status ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
                       {product.stock > 0 ? `${product.stock} en stock` : 'Agotado'}
                     </span>
