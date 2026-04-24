@@ -4,6 +4,7 @@ import {
   Shield, CreditCard, ArrowRight, Package, ChevronLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../../utils/currency';
 
 const CheckCircle = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -15,17 +16,17 @@ const CheckCircle = ({ size }) => (
 const Carrito = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Laptop Pro X1', price: 1299.99, quantity: 1, image: null, stock: 15 },
-    { id: 2, name: 'Smart Watch S3', price: 299.99, quantity: 2, image: null, stock: 22 },
-    { id: 3, name: 'Auriculares Pro', price: 199.99, quantity: 1, image: null, stock: 5 }
+    { id: 1, name: 'Laptop Pro X1', price: 4999.00, quantity: 1, image: null, stock: 15 },
+    { id: 2, name: 'Smart Watch S3', price: 1299.00, quantity: 2, image: null, stock: 22 },
+    { id: 3, name: 'Auriculares Pro', price: 899.00, quantity: 1, image: null, stock: 5 }
   ]);
 
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
-  const shippingCost = 9.99;
-  const freeShippingThreshold = 500;
+  const shippingCost = 15.00;
+  const freeShippingThreshold = 500.00;
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const discountAmount = subtotal * (discount / 100);
@@ -120,7 +121,7 @@ const Carrito = () => {
                 <div className="shipping-progress">
                   <div className="shipping-info">
                     <Truck size={18} />
-                    <span>Te faltan <strong>${(freeShippingThreshold - subtotal).toLocaleString()}</strong> para envío gratis</span>
+                    <span>Te faltan <strong>{formatCurrency(freeShippingThreshold - subtotal)}</strong> para envío gratis</span>
                   </div>
                   <div className="progress-bar">
                     <div 
@@ -144,7 +145,7 @@ const Carrito = () => {
                   <div className="cart-item-info">
                     <div className="item-header">
                       <h3 className="item-name">{item.name}</h3>
-                      <span className="item-price">${item.price.toLocaleString()}</span>
+                      <span className="item-price">{formatCurrency(item.price)}</span>
                     </div>
                     
                     <div className="item-meta">
@@ -189,7 +190,7 @@ const Carrito = () => {
                   <div className="cart-item-total">
                     <span className="total-label">Subtotal</span>
                     <span className="total-amount">
-                      ${(item.price * item.quantity).toLocaleString()}
+                      {formatCurrency(item.price * item.quantity)}
                     </span>
                   </div>
                 </div>
@@ -204,7 +205,7 @@ const Carrito = () => {
               <div className="summary-details">
                 <div className="summary-row">
                   <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} productos)</span>
-                  <span>${subtotal.toLocaleString()}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
 
                 {appliedCoupon && (
@@ -213,7 +214,7 @@ const Carrito = () => {
                       Descuento ({appliedCoupon})
                       <button className="remove-coupon" onClick={removeCoupon}>✕</button>
                     </span>
-                    <span>-${discountAmount.toLocaleString()}</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
 
@@ -236,7 +237,7 @@ const Carrito = () => {
                   {finalShippingCost === 0 ? (
                     <span className="free-shipping">Gratis</span>
                   ) : (
-                    <span>${finalShippingCost.toLocaleString()}</span>
+                    <span>{formatCurrency(finalShippingCost)}</span>
                   )}
                 </div>
 
@@ -244,7 +245,7 @@ const Carrito = () => {
 
                 <div className="summary-row total">
                   <span>Total</span>
-                  <span>${total.toLocaleString()}</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
               </div>
 

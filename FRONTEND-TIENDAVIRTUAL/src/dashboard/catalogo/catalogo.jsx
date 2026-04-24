@@ -4,6 +4,7 @@ import {
   Star, ChevronDown, X, Eye, SlidersHorizontal
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../../utils/currency';
 
 const Package = ({ size = 48 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -25,14 +26,14 @@ const Catalogo = () => {
   const [wishlist, setWishlist] = useState([]);
 
   const [products] = useState([
-    { id: 1, name: 'Laptop Pro X1', category: 'Laptops', price: 1299.99, rating: 4.5, stock: 15, image: null, description: 'Laptop de alto rendimiento con procesador i7' },
-    { id: 2, name: 'Smartphone Ultra', category: 'Smartphones', price: 899.99, rating: 4.8, stock: 8, image: null, description: 'Smartphone con cámara de 108MP' },
-    { id: 3, name: 'Tablet Air', category: 'Tablets', price: 499.99, rating: 4.3, stock: 3, image: null, description: 'Tablet ligera con pantalla Retina' },
-    { id: 4, name: 'Smart Watch S3', category: 'Wearables', price: 299.99, rating: 4.6, stock: 22, image: null, description: 'Smartwatch con monitor de salud' },
-    { id: 5, name: 'Auriculares Pro', category: 'Audio', price: 199.99, rating: 4.7, stock: 0, image: null, description: 'Auriculares con cancelación de ruido' },
-    { id: 6, name: 'Monitor 4K', category: 'Monitores', price: 599.99, rating: 4.4, stock: 12, image: null, description: 'Monitor 4K UHD de 27 pulgadas' },
-    { id: 7, name: 'Teclado Mecánico', category: 'Periféricos', price: 129.99, rating: 4.2, stock: 30, image: null, description: 'Teclado mecánico RGB' },
-    { id: 8, name: 'Mouse Gaming', category: 'Periféricos', price: 79.99, rating: 4.5, stock: 25, image: null, description: 'Mouse gaming 16000 DPI' }
+    { id: 1, name: 'Laptop Pro X1', category: 'Laptops', price: 4999.00, rating: 4.5, stock: 15, image: null, description: 'Laptop de alto rendimiento con procesador i7' },
+    { id: 2, name: 'Smartphone Ultra', category: 'Smartphones', price: 3499.00, rating: 4.8, stock: 8, image: null, description: 'Smartphone con cámara de 108MP' },
+    { id: 3, name: 'Tablet Air', category: 'Tablets', price: 2899.00, rating: 4.3, stock: 3, image: null, description: 'Tablet ligera con pantalla Retina' },
+    { id: 4, name: 'Smart Watch S3', category: 'Wearables', price: 1299.00, rating: 4.6, stock: 22, image: null, description: 'Smartwatch con monitor de salud' },
+    { id: 5, name: 'Auriculares Pro', category: 'Audio', price: 899.00, rating: 4.7, stock: 0, image: null, description: 'Auriculares con cancelación de ruido' },
+    { id: 6, name: 'Monitor 4K', category: 'Monitores', price: 2499.00, rating: 4.4, stock: 12, image: null, description: 'Monitor 4K UHD de 27 pulgadas' },
+    { id: 7, name: 'Teclado Mecánico', category: 'Periféricos', price: 549.00, rating: 4.2, stock: 30, image: null, description: 'Teclado mecánico RGB' },
+    { id: 8, name: 'Mouse Gaming', category: 'Periféricos', price: 349.00, rating: 4.5, stock: 25, image: null, description: 'Mouse gaming 16000 DPI' }
   ]);
 
   const categories = ['all', ...new Set(products.map(p => p.category))];
@@ -167,7 +168,7 @@ const Catalogo = () => {
           </div>
           
           <div className="filter-group">
-            <label className="filter-label">Rango de Precio</label>
+            <label className="filter-label">Rango de Precio (S/)</label>
             <div className="price-range">
               <input
                 type="number"
@@ -260,7 +261,7 @@ const Catalogo = () => {
                 
                 <div className="product-footer">
                   <div className="price-stock">
-                    <span className="product-price">${product.price.toLocaleString()}</span>
+                    <span className="product-price">{formatCurrency(product.price)}</span>
                     <span className={`stock-status ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
                       {product.stock > 0 ? `${product.stock} en stock` : 'Agotado'}
                     </span>
