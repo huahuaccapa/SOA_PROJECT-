@@ -1,16 +1,9 @@
 // src/utils/currency.js
 
-/**
- * Utilidades para formateo de moneda en Soles Peruanos (PEN)
- */
-
 const LOCALE = 'es-PE';
 const CURRENCY_SYMBOL = 'S/ ';
 const CURRENCY_CODE = 'PEN';
 
-/**
- * Formatea un número como moneda en Soles
- */
 export const formatCurrency = (amount, showSymbol = true) => {
   if (amount === null || amount === undefined) return `${showSymbol ? CURRENCY_SYMBOL : ''}0.00`;
   
@@ -25,9 +18,6 @@ export const formatCurrency = (amount, showSymbol = true) => {
   return `${sign}${prefix}${formatted}`;
 };
 
-/**
- * Formatea un número como moneda sin decimales
- */
 export const formatCurrencyNoDecimals = (amount) => {
   if (amount === null || amount === undefined) return 'S/ 0';
   
