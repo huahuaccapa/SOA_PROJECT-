@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+// src/dashboard/carrito/carrito.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ShoppingCart, Trash2, Plus, Minus, Heart, Truck,
   Shield, CreditCard, ArrowRight, Package, ChevronLeft
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const CheckCircle = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -14,24 +15,32 @@ const CheckCircle = ({ size }) => (
 
 const Carrito = () => {
   const navigate = useNavigate();
+  const isGuest = sessionStorage.getItem('is_guest') === 'true';
+  
   const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Laptop Pro X1', price: 1299.99, quantity: 1, image: null, stock: 15 },
-    { id: 2, name: 'Smart Watch S3', price: 299.99, quantity: 2, image: null, stock: 22 },
-    { id: 3, name: 'Auriculares Pro', price: 199.99, quantity: 1, image: null, stock: 5 }
+    { id: 1, name: 'Laptop Pro X1', price: 4999, quantity: 1, image: null, stock: 15 },
+    { id: 2, name: 'Smart Watch Pro S3', price: 1299, quantity: 2, image: null, stock: 22 },
+    { id: 3, name: 'Auriculares Noise Pro', price: 899, quantity: 1, image: null, stock: 5 }
   ]);
 
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
-  const shippingCost = 9.99;
-  const freeShippingThreshold = 500;
+  const shippingCost = 35;
+  const freeShippingThreshold = 5000;
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const discountAmount = subtotal * (discount / 100);
   const totalBeforeShipping = subtotal - discountAmount;
   const finalShippingCost = subtotal >= freeShippingThreshold ? 0 : shippingCost;
   const total = totalBeforeShipping + finalShippingCost;
+
+  useEffect(() => {
+    if (isGuest) {
+      navigate('/login');
+    }
+  }, [isGuest, navigate]);
 
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity < 1) return;
@@ -50,7 +59,8 @@ const Carrito = () => {
     const validCoupons = {
       'WELCOME10': 10,
       'SAVE20': 20,
-      'TECH15': 15
+      'TECH15': 15,
+      'PERU25': 25
     };
     
     const upperCode = couponCode.toUpperCase();
@@ -58,7 +68,7 @@ const Carrito = () => {
       setDiscount(validCoupons[upperCode]);
       setAppliedCoupon(upperCode);
     } else {
-      alert('Cupón inválido');
+      alert('Cupón inválido o expirado');
     }
   };
 
@@ -70,8 +80,6 @@ const Carrito = () => {
 
   const handleCheckout = () => {
     const userRole = localStorage.getItem('user_role');
-    const isGuest = sessionStorage.getItem('is_guest') === 'true';
-    
     if (!userRole || isGuest) {
       navigate('/login');
     } else {
@@ -79,52 +87,61 @@ const Carrito = () => {
     }
   };
 
+  if (isGuest) return null;
+
   return (
-    <div className="carrito-page">
-      <div className="page-header">
-        <div className="page-header-left">
-          <h1>
-            <ShoppingCart size={28} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-text-base flex items-center gap-3">
+            <ShoppingCart size={28} className="text-primary" />
             Mi Carrito de Compras
           </h1>
-          <p>{cartItems.length} {cartItems.length === 1 ? 'producto' : 'productos'} en tu carrito</p>
+          <p className="text-text-muted mt-1">
+            {cartItems.length} {cartItems.length === 1 ? 'producto' : 'productos'} en tu carrito
+          </p>
         </div>
-        <div className="header-actions">
-          <button className="btn btn-secondary" onClick={() => navigate('/catalogo')}>
-            <ChevronLeft size={18} /> Seguir Comprando
-          </button>
-        </div>
+        <button className="btn-secondary" onClick={() => navigate('/catalogo')}>
+          <ChevronLeft size={18} /> Seguir Comprando
+        </button>
       </div>
 
       {cartItems.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">
-            <ShoppingCart size={64} />
-          </div>
-          <h2>Tu carrito está vacío</h2>
-          <p>Explora nuestro catálogo y encuentra productos increíbles</p>
-          <button className="btn btn-primary" onClick={() => navigate('/catalogo')}>
+        <div className="text-center py-16">
+          <ShoppingCart size={64} className="mx-auto text-text-muted mb-4" />
+          <h2 className="text-2xl font-semibold text-text-base mb-2">Tu carrito está vacío</h2>
+          <p className="text-text-muted mb-6">Explora nuestro catálogo y encuentra productos increíbles</p>
+          <button className="btn-primary" onClick={() => navigate('/catalogo')}>
             Ir al Catálogo
           </button>
         </div>
       ) : (
-        <div className="carrito-content">
-          <div className="carrito-items-section">
-            <div className="shipping-banner">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Lista de productos */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Banner de envío gratis */}
+            <div className="card">
               {subtotal >= freeShippingThreshold ? (
-                <div className="shipping-achieved">
+                <div className="flex items-center gap-3 text-success">
                   <CheckCircle size={20} />
-                  <span>¡Envío gratis conseguido! Disfruta de envío sin costo</span>
+                  <span className="font-medium">¡Envío gratis conseguido! Disfruta de envío sin costo</span>
                 </div>
               ) : (
-                <div className="shipping-progress">
-                  <div className="shipping-info">
+                <div>
+                  <div className="flex items-center gap-3 text-text-secondary mb-3">
                     <Truck size={18} />
-                    <span>Te faltan <strong>${(freeShippingThreshold - subtotal).toLocaleString()}</strong> para envío gratis</span>
+                    <span>
+                      Te faltan{' '}
+                      <strong className="text-primary">
+                        S/ {(freeShippingThreshold - subtotal).toLocaleString('es-PE')}
+                      </strong>{' '}
+                      para envío gratis
+                    </span>
                   </div>
-                  <div className="progress-bar">
+                  <div className="h-2 bg-base-tertiary rounded-full overflow-hidden">
                     <div 
-                      className="progress-fill" 
+                      className="h-full bg-gradient-to-r from-primary to-info rounded-full transition-all duration-500"
                       style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
                     />
                   </div>
@@ -132,39 +149,40 @@ const Carrito = () => {
               )}
             </div>
 
-            <div className="cart-items">
-              {cartItems.map(item => (
-                <div key={item.id} className="cart-item-card">
-                  <div className="cart-item-image">
-                    <div className="image-placeholder">
-                      <Package size={32} />
-                    </div>
+            {/* Items del carrito */}
+            {cartItems.map(item => (
+              <div key={item.id} className="card hover:border-primary/50 transition-all">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="w-full sm:w-32 h-32 bg-gradient-to-br from-base-primary to-base-tertiary rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Package size={40} className="text-text-muted" />
                   </div>
                   
-                  <div className="cart-item-info">
-                    <div className="item-header">
-                      <h3 className="item-name">{item.name}</h3>
-                      <span className="item-price">${item.price.toLocaleString()}</span>
-                    </div>
-                    
-                    <div className="item-meta">
-                      <span className={`stock-badge ${item.stock > 5 ? 'in-stock' : 'low-stock'}`}>
-                        {item.stock > 0 ? `${item.stock} disponibles` : 'Agotado'}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-semibold text-text-base">{item.name}</h3>
+                      <span className="text-xl font-bold text-primary">
+                        S/ {item.price.toLocaleString('es-PE')}
                       </span>
                     </div>
+                    
+                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                      item.stock > 5 ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                    }`}>
+                      {item.stock > 0 ? `${item.stock} disponibles` : 'Agotado'}
+                    </span>
 
-                    <div className="item-actions">
-                      <div className="quantity-selector">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+                      <div className="flex items-center gap-3 bg-base-primary border border-border-color rounded-lg p-1">
                         <button 
-                          className="qty-btn"
+                          className="w-8 h-8 flex items-center justify-center rounded hover:bg-primary hover:text-white transition-colors disabled:opacity-30"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           disabled={item.quantity <= 1}
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="qty-value">{item.quantity}</span>
+                        <span className="min-w-[30px] text-center font-semibold text-text-base">{item.quantity}</span>
                         <button 
-                          className="qty-btn"
+                          className="w-8 h-8 flex items-center justify-center rounded hover:bg-primary hover:text-white transition-colors disabled:opacity-30"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           disabled={item.quantity >= item.stock}
                         >
@@ -172,12 +190,12 @@ const Carrito = () => {
                         </button>
                       </div>
                       
-                      <div className="item-secondary-actions">
-                        <button className="btn-text">
+                      <div className="flex items-center gap-4">
+                        <button className="text-text-muted hover:text-danger transition-colors flex items-center gap-1 text-sm">
                           <Heart size={16} /> Guardar
                         </button>
                         <button 
-                          className="btn-text danger"
+                          className="text-text-muted hover:text-danger transition-colors flex items-center gap-1 text-sm"
                           onClick={() => removeItem(item.id)}
                         >
                           <Trash2 size={16} /> Eliminar
@@ -186,98 +204,108 @@ const Carrito = () => {
                     </div>
                   </div>
 
-                  <div className="cart-item-total">
-                    <span className="total-label">Subtotal</span>
-                    <span className="total-amount">
-                      ${(item.price * item.quantity).toLocaleString()}
+                  <div className="text-right sm:min-w-[100px]">
+                    <span className="text-xs text-text-muted block mb-1">Subtotal</span>
+                    <span className="text-lg font-bold text-text-base">
+                      S/ {(item.price * item.quantity).toLocaleString('es-PE')}
                     </span>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
-          <div className="carrito-summary">
-            <div className="summary-card">
-              <h2>Resumen del Pedido</h2>
+          {/* Resumen del pedido */}
+          <div className="lg:col-span-1">
+            <div className="card sticky top-24">
+              <h2 className="text-xl font-semibold text-text-base mb-6 pb-4 border-b border-border-color">
+                Resumen del Pedido
+              </h2>
               
-              <div className="summary-details">
-                <div className="summary-row">
+              <div className="space-y-3">
+                <div className="flex justify-between text-text-secondary">
                   <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} productos)</span>
-                  <span>${subtotal.toLocaleString()}</span>
+                  <span>S/ {subtotal.toLocaleString('es-PE')}</span>
                 </div>
 
                 {appliedCoupon && (
-                  <div className="summary-row discount">
-                    <span>
+                  <div className="flex justify-between text-success">
+                    <span className="flex items-center gap-2">
                       Descuento ({appliedCoupon})
-                      <button className="remove-coupon" onClick={removeCoupon}>✕</button>
+                      <button className="text-text-muted hover:text-danger text-xs" onClick={removeCoupon}>✕</button>
                     </span>
-                    <span>-${discountAmount.toLocaleString()}</span>
+                    <span>-S/ {discountAmount.toLocaleString('es-PE')}</span>
                   </div>
                 )}
 
                 {!appliedCoupon && (
-                  <div className="coupon-input">
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       placeholder="Código de descuento"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
+                      className="input-field flex-1"
                     />
-                    <button className="btn btn-secondary btn-sm" onClick={applyCoupon}>
+                    <button className="btn-secondary btn-sm" onClick={applyCoupon}>
                       Aplicar
                     </button>
                   </div>
                 )}
 
-                <div className="summary-row">
+                <div className="flex justify-between text-text-secondary">
                   <span>Envío</span>
                   {finalShippingCost === 0 ? (
-                    <span className="free-shipping">Gratis</span>
+                    <span className="text-success font-medium">Gratis</span>
                   ) : (
-                    <span>${finalShippingCost.toLocaleString()}</span>
+                    <span>S/ {finalShippingCost.toLocaleString('es-PE')}</span>
                   )}
                 </div>
 
-                <div className="summary-divider" />
-
-                <div className="summary-row total">
-                  <span>Total</span>
-                  <span>${total.toLocaleString()}</span>
+                <div className="border-t border-border-color pt-3">
+                  <div className="flex justify-between text-lg">
+                    <span className="font-semibold text-text-base">Total</span>
+                    <span className="font-bold text-primary">
+                      S/ {total.toLocaleString('es-PE')}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <button className="btn btn-primary btn-block checkout-button" onClick={handleCheckout}>
-                Proceder al Pago <ArrowRight size={18} />
+              <button 
+                className="btn-primary w-full mt-6 py-3 text-lg font-semibold"
+                onClick={handleCheckout}
+              >
+                Proceder al Pago <ArrowRight size={20} />
               </button>
 
-              <div className="secure-payment">
+              <div className="flex items-center justify-center gap-2 mt-4 text-text-muted text-sm">
                 <Shield size={16} />
                 <span>Pago seguro con encriptación SSL</span>
               </div>
             </div>
 
-            <div className="info-cards">
-              <div className="info-card">
-                <Truck size={20} />
+            {/* Info cards */}
+            <div className="space-y-3 mt-4">
+              <div className="card flex items-center gap-4">
+                <Truck size={24} className="text-primary" />
                 <div>
-                  <strong>Envío Rápido</strong>
-                  <p>Entrega en 2-3 días hábiles</p>
+                  <strong className="text-text-base block text-sm">Envío Rápido</strong>
+                  <p className="text-text-muted text-xs">Entrega en 2-3 días hábiles</p>
                 </div>
               </div>
-              <div className="info-card">
-                <Shield size={20} />
+              <div className="card flex items-center gap-4">
+                <Shield size={24} className="text-primary" />
                 <div>
-                  <strong>Compra Protegida</strong>
-                  <p>Garantía de devolución de 30 días</p>
+                  <strong className="text-text-base block text-sm">Compra Protegida</strong>
+                  <p className="text-text-muted text-xs">Garantía de devolución de 30 días</p>
                 </div>
               </div>
-              <div className="info-card">
-                <CreditCard size={20} />
+              <div className="card flex items-center gap-4">
+                <CreditCard size={24} className="text-primary" />
                 <div>
-                  <strong>Pago Seguro</strong>
-                  <p>Múltiples métodos de pago</p>
+                  <strong className="text-text-base block text-sm">Pago Seguro</strong>
+                  <p className="text-text-muted text-xs">Múltiples métodos de pago</p>
                 </div>
               </div>
             </div>

@@ -1,7 +1,8 @@
+// src/dashboard/notificaciones/notificaciones.jsx
 import React, { useState } from 'react';
 import {
   Bell, ShoppingCart, AlertTriangle, CheckCircle, Info,
-  Package, CreditCard, User, Settings, Trash2, Check
+  Package, CreditCard, User, Settings, Trash2
 } from 'lucide-react';
 
 const Notificaciones = () => {
@@ -24,10 +25,21 @@ const Notificaciones = () => {
       shipping: Package,
       system: Settings,
       user: User,
-      default: Info
     };
-    const Icon = icons[type] || icons.default;
+    const Icon = icons[type] || Info;
     return <Icon size={18} />;
+  };
+
+  const getIconStyle = (type) => {
+    const styles = {
+      order: 'bg-info/10 text-info',
+      warning: 'bg-warning/10 text-warning',
+      payment: 'bg-success/10 text-success',
+      shipping: 'bg-purple-500/10 text-purple-500',
+      system: 'bg-text-muted/10 text-text-muted',
+      user: 'bg-pink-500/10 text-pink-500',
+    };
+    return styles[type] || 'bg-info/10 text-info';
   };
 
   const markAsRead = (id) => {
@@ -49,7 +61,9 @@ const Notificaciones = () => {
   };
 
   const clearAll = () => {
-    setNotifications([]);
+    if (window.confirm('¿Eliminar todas las notificaciones?')) {
+      setNotifications([]);
+    }
   };
 
   const filteredNotifications = notifications.filter(notif => {
@@ -60,141 +74,134 @@ const Notificaciones = () => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const filters = [
+    { id: 'all', label: 'Todas', icon: Bell },
+    { id: 'unread', label: 'No leídas', icon: Info },
+    { id: 'order', label: 'Pedidos', icon: ShoppingCart },
+    { id: 'payment', label: 'Pagos', icon: CreditCard },
+    { id: 'shipping', label: 'Envíos', icon: Package },
+    { id: 'system', label: 'Sistema', icon: Settings },
+  ];
+
   return (
-    <div className="notificaciones-page">
-      <div className="page-header">
-        <div className="page-header-left">
-          <h1>
-            <Bell size={28} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-text-base flex items-center gap-3">
+            <Bell size={28} className="text-primary" />
             Notificaciones
           </h1>
           {unreadCount > 0 && (
-            <span className="badge">{unreadCount} no leídas</span>
+            <span className="badge-danger">
+              {unreadCount} no leídas
+            </span>
           )}
         </div>
-        <div className="header-actions">
-          <button className="btn btn-secondary" onClick={markAllAsRead}>
+        <div className="flex gap-3">
+          <button className="btn-secondary" onClick={markAllAsRead}>
             <CheckCircle size={16} /> Marcar todas leídas
           </button>
-          <button className="btn btn-secondary danger" onClick={clearAll}>
+          <button className="btn-secondary text-danger hover:bg-danger/10 hover:text-danger hover:border-danger" onClick={clearAll}>
             <Trash2 size={16} /> Limpiar todas
           </button>
         </div>
       </div>
 
-      <div className="filter-tabs">
-        <button 
-          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          <Bell size={16} /> Todas
-        </button>
-        <button 
-          className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
-          onClick={() => setFilter('unread')}
-        >
-          <Info size={16} /> No leídas
-        </button>
-        <button 
-          className={`filter-tab ${filter === 'order' ? 'active' : ''}`}
-          onClick={() => setFilter('order')}
-        >
-          <ShoppingCart size={16} /> Pedidos
-        </button>
-        <button 
-          className={`filter-tab ${filter === 'payment' ? 'active' : ''}`}
-          onClick={() => setFilter('payment')}
-        >
-          <CreditCard size={16} /> Pagos
-        </button>
-        <button 
-          className={`filter-tab ${filter === 'shipping' ? 'active' : ''}`}
-          onClick={() => setFilter('shipping')}
-        >
-          <Package size={16} /> Envíos
-        </button>
-        <button 
-          className={`filter-tab ${filter === 'system' ? 'active' : ''}`}
-          onClick={() => setFilter('system')}
-        >
-          <Settings size={16} /> Sistema
-        </button>
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {filters.map(f => (
+          <button 
+            key={f.id}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-all ${
+              filter === f.id 
+                ? 'bg-primary text-white' 
+                : 'bg-transparent border border-border-color text-text-secondary hover:bg-base-hover hover:text-text-base'
+            }`}
+            onClick={() => setFilter(f.id)}
+          >
+            <f.icon size={16} />
+            {f.label}
+          </button>
+        ))}
       </div>
 
-      <div className="notifications-content">
+      {/* Notifications List */}
+      <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <div className="empty-state">
-            <Bell size={48} />
-            <h3>No hay notificaciones</h3>
-            <p>No tienes notificaciones en esta categoría</p>
+          <div className="text-center py-16">
+            <Bell size={48} className="mx-auto text-text-muted mb-4" />
+            <h3 className="text-xl font-semibold text-text-base mb-2">No hay notificaciones</h3>
+            <p className="text-text-muted">No tienes notificaciones en esta categoría</p>
           </div>
         ) : (
-          <div className="notifications-list">
-            {filteredNotifications.map(notification => (
-              <div 
-                key={notification.id} 
-                className={`notification-card ${!notification.read ? 'unread' : ''}`}
-              >
-                <div className={`notification-icon ${notification.type}`}>
-                  {getNotificationIcon(notification.type)}
-                </div>
-                <div className="notification-body">
-                  <div className="notification-header">
-                    <h3 className="notification-title">{notification.title}</h3>
-                    {!notification.read && <span className="unread-dot" />}
-                  </div>
-                  <p className="notification-message">{notification.message}</p>
-                  <span className="notification-time">{notification.time}</span>
-                </div>
-                <div className="notification-actions">
-                  {!notification.read && (
-                    <button 
-                      className="btn-icon"
-                      onClick={() => markAsRead(notification.id)}
-                      title="Marcar como leída"
-                    >
-                      <CheckCircle size={16} />
-                    </button>
-                  )}
-                  <button 
-                    className="btn-icon danger"
-                    onClick={() => deleteNotification(notification.id)}
-                    title="Eliminar notificación"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+          filteredNotifications.map(notification => (
+            <div 
+              key={notification.id} 
+              className={`card flex items-start gap-4 hover:border-primary/50 transition-all ${
+                !notification.read ? 'border-l-4 border-l-primary bg-primary/5' : ''
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getIconStyle(notification.type)}`}>
+                {getNotificationIcon(notification.type)}
               </div>
-            ))}
-          </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-text-base">{notification.title}</h3>
+                  {!notification.read && (
+                    <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                  )}
+                </div>
+                <p className="text-text-secondary text-sm mb-1">{notification.message}</p>
+                <span className="text-text-muted text-xs">{notification.time}</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {!notification.read && (
+                  <button 
+                    className="btn-ghost btn-sm text-success"
+                    onClick={() => markAsRead(notification.id)}
+                    title="Marcar como leída"
+                  >
+                    <CheckCircle size={16} />
+                  </button>
+                )}
+                <button 
+                  className="btn-ghost btn-sm text-danger"
+                  onClick={() => deleteNotification(notification.id)}
+                  title="Eliminar notificación"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
-      <div className="settings-section">
-        <h2>Preferencias de Notificaciones</h2>
-        <div className="settings-options">
-          <label className="checkbox-option">
-            <input type="checkbox" defaultChecked />
-            <span>Notificaciones de pedidos</span>
-          </label>
-          <label className="checkbox-option">
-            <input type="checkbox" defaultChecked />
-            <span>Alertas de stock bajo</span>
-          </label>
-          <label className="checkbox-option">
-            <input type="checkbox" defaultChecked />
-            <span>Confirmaciones de pago</span>
-          </label>
-          <label className="checkbox-option">
-            <input type="checkbox" defaultChecked />
-            <span>Actualizaciones de envío</span>
-          </label>
-          <label className="checkbox-option">
-            <input type="checkbox" defaultChecked />
-            <span>Notificaciones del sistema</span>
-          </label>
+      {/* Settings Section */}
+      <div className="card">
+        <h2 className="text-xl font-semibold text-text-base mb-6">Preferencias de Notificaciones</h2>
+        <div className="space-y-4 mb-6">
+          {[
+            'Notificaciones de pedidos',
+            'Alertas de stock bajo',
+            'Confirmaciones de pago',
+            'Actualizaciones de envío',
+            'Notificaciones del sistema'
+          ].map((label, index) => (
+            <label key={index} className="flex items-center gap-3 cursor-pointer">
+              <input 
+                type="checkbox" 
+                defaultChecked 
+                className="w-4 h-4 rounded border-border-color bg-base-primary text-primary focus:ring-primary focus:ring-2"
+              />
+              <span className="text-text-secondary">{label}</span>
+            </label>
+          ))}
         </div>
-        <button className="btn btn-primary">Guardar preferencias</button>
+        <button className="btn-primary">Guardar preferencias</button>
       </div>
     </div>
   );
