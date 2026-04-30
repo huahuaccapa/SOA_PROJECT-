@@ -1,34 +1,34 @@
-//src\App.jsx
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 
-// Importación de componentes de autenticación
+// Componentes de Autenticación
 import Login from './Login/login';
 import Register from './Login/register/register';
 import ForgotPassword from './Login/forget password/forgetpassword';
 
-// Importación de dashboards
+// Dashboards
 import DashboardAdmin from './dashboard/dashboardadmin';
 import DashboardUsuario from './dashboard/dashboardusuario';
 import DashboardInvitado from './dashboard/dashboardinvitado';
 
-// Importación de páginas
+// Páginas
 import Catalogo from './dashboard/catalogo/catalogo';
 import Pedidos from './dashboard/pedidos/pedidos';
 import Pagos from './dashboard/pagos/pagos';
 import Notificaciones from './dashboard/notificaciones/notificaciones';
 import Carrito from './dashboard/carrito/carrito';
 
-// Importación del layout
+// Layout
 import DashboardLayout from './components/DashboardLayout';
-import './dashboard/dashboard.css';
 
 // Estilos
 import './App.css';
 
 // =============================================
-// COMPONENTE: ProtectedRoute
+// COMPONENTES DE RUTA PROTEGIDA
 // =============================================
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('jwt_token');
   const isGuest = sessionStorage.getItem('is_guest') === 'true';
@@ -36,88 +36,31 @@ const ProtectedRoute = ({ children }) => {
   if (!token && !isGuest) {
     return <Navigate to="/login" replace />;
   }
-  
   return children;
 };
 
-// =============================================
-// COMPONENTE: RoleBasedRoute
-// =============================================
 const RoleBasedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem('jwt_token');
   const userRole = localStorage.getItem('user_role');
   const isGuest = sessionStorage.getItem('is_guest') === 'true';
-  
+  const effectiveRole = isGuest ? 'GUEST' : userRole;
+
   if (!token && !isGuest) {
     return <Navigate to="/login" replace />;
   }
-  
-  if (isGuest) {
-    return allowedRoles.includes('GUEST') ? children : <Navigate to="/catalogo" replace />;
+
+  if (!allowedRoles.includes(effectiveRole)) {
+    if (effectiveRole === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (effectiveRole === 'USER') return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/catalogo" replace />;
   }
-  
-  if (!allowedRoles.includes(userRole)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
   return children;
 };
 
 // =============================================
-// COMPONENTE: DashboardRouter
+// LAYOUT WRAPPERS
 // =============================================
-const DashboardRouter = () => {
-  const token = localStorage.getItem('jwt_token');
-  const userRole = localStorage.getItem('user_role');
-  const isGuest = sessionStorage.getItem('is_guest') === 'true';
-  const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-  
-  const [activeTab, setActiveTab] = useState(() => {
-    return sessionStorage.getItem('dashboard_active_tab') || 'overview';
-  });
 
-  useEffect(() => {
-    sessionStorage.setItem('dashboard_active_tab', activeTab);
-  }, [activeTab]);
-  
-  if (!token && !isGuest) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  const role = isGuest ? 'GUEST' : userRole;
-  
-  return (
-    <DashboardLayout 
-      user={userData} 
-      role={role} 
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-    >
-      {isGuest ? (
-        <DashboardInvitado 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-        />
-      ) : userRole === 'ADMIN' ? (
-        <DashboardAdmin 
-          user={userData}
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-        />
-      ) : (
-        <DashboardUsuario 
-          user={userData}
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-        />
-      )}
-    </DashboardLayout>
-  );
-};
-
-// =============================================
-// COMPONENTE: PageWithLayout
-// =============================================
 const PageWithLayout = ({ children }) => {
   const userRole = localStorage.getItem('user_role');
   const isGuest = sessionStorage.getItem('is_guest') === 'true';
@@ -131,57 +74,117 @@ const PageWithLayout = ({ children }) => {
   );
 };
 
+const AdminPageWithLayout = ({ children }) => {
+  const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+  return (
+    <DashboardLayout user={userData} role="ADMIN">
+      {children}
+    </DashboardLayout>
+  );
+};
+
 // =============================================
-// COMPONENTE: NotFound
+// DASHBOARD ROUTERS
 // =============================================
+
+const UserDashboardRouter = () => {
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('user_active_tab') || 'overview';
+  });
+  const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+  
+  useEffect(() => {
+    sessionStorage.setItem('user_active_tab', activeTab);
+  }, [activeTab]);
+
+  return (
+    <DashboardLayout user={userData} role="USER" activeTab={activeTab} onTabChange={setActiveTab}>
+      <DashboardUsuario user={userData} activeTab={activeTab} setActiveTab={setActiveTab} />
+    </DashboardLayout>
+  );
+};
+
+const AdminDashboardRouter = () => {
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('admin_active_tab') || 'overview';
+  });
+  const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+  
+  useEffect(() => {
+    sessionStorage.setItem('admin_active_tab', activeTab);
+  }, [activeTab]);
+
+  return (
+    <DashboardLayout user={userData} role="ADMIN" activeTab={activeTab} onTabChange={setActiveTab}>
+      <DashboardAdmin user={userData} activeTab={activeTab} setActiveTab={setActiveTab} />
+    </DashboardLayout>
+  );
+};
+
+const GuestDashboard = () => {
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('guest_active_tab') || 'catalog';
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('guest_active_tab', activeTab);
+  }, [activeTab]);
+
+  return (
+    <DashboardLayout user={null} role="GUEST" activeTab={activeTab} onTabChange={setActiveTab}>
+      <DashboardInvitado activeTab={activeTab} setActiveTab={setActiveTab} />
+    </DashboardLayout>
+  );
+};
+
+// =============================================
+// COMPONENTE 404
+// =============================================
+
 const NotFound = () => (
-  <div className="access-denied">
-    <h1>404 - Página no encontrada</h1>
-    <p>La página que buscas no existe.</p>
-    <a href="/catalogo" className="btn btn-primary">Ir al Catálogo</a>
+  <div className="min-h-screen flex flex-col items-center justify-center bg-base-primary">
+    <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
+    <h2 className="text-2xl font-semibold text-text-base mb-2">Página no encontrada</h2>
+    <p className="text-text-muted mb-8">La página que buscas no existe o ha sido movida.</p>
+    <a href="/catalogo" className="btn-primary">
+      Ir al Catálogo
+    </a>
   </div>
 );
 
 // =============================================
 // COMPONENTE PRINCIPAL: App
 // =============================================
+
 function App() {
   return (
     <Router>
       <div className="app">
         <Routes>
-          {/* Rutas públicas */}
+          {/* Rutas Públicas - Sin autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
-          {/* Dashboard principal */}
+          {/* Catálogo público - Cualquiera puede ver */}
+          <Route path="/catalogo" element={<GuestDashboard />} />
+          <Route path="/" element={<Navigate to="/catalogo" replace />} />
+          
+          {/* Rutas para Usuarios Registrados */}
           <Route 
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <DashboardRouter />
+                <UserDashboardRouter />
               </ProtectedRoute>
             } 
           />
           
-          {/* Catálogo - Accesible para todos */}
-          <Route 
-            path="/catalogo" 
-            element={
-              <ProtectedRoute>
-                <PageWithLayout>
-                  <Catalogo />
-                </PageWithLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Pedidos - Solo ADMIN y USER */}
+          {/* Pedidos - Solo USER y ADMIN */}
           <Route 
             path="/pedidos" 
             element={
-              <RoleBasedRoute allowedRoles={['ADMIN', 'USER']}>
+              <RoleBasedRoute allowedRoles={['USER', 'ADMIN']}>
                 <PageWithLayout>
                   <Pedidos userRole={localStorage.getItem('user_role')} />
                 </PageWithLayout>
@@ -189,11 +192,11 @@ function App() {
             } 
           />
           
-          {/* Pagos - Solo ADMIN y USER */}
+          {/* Pagos - Solo USER y ADMIN */}
           <Route 
             path="/pagos" 
             element={
-              <RoleBasedRoute allowedRoles={['ADMIN', 'USER']}>
+              <RoleBasedRoute allowedRoles={['USER', 'ADMIN']}>
                 <PageWithLayout>
                   <Pagos userRole={localStorage.getItem('user_role')} />
                 </PageWithLayout>
@@ -201,7 +204,19 @@ function App() {
             } 
           />
           
-          {/* Notificaciones - Accesible para todos */}
+          {/* Carrito - USER y GUEST (pero con restricciones en el componente) */}
+          <Route 
+            path="/carrito" 
+            element={
+              <ProtectedRoute>
+                <PageWithLayout>
+                  <Carrito />
+                </PageWithLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Notificaciones - Cualquier usuario autenticado */}
           <Route 
             path="/notificaciones" 
             element={
@@ -213,20 +228,15 @@ function App() {
             } 
           />
           
-          {/* Carrito - Solo USER y GUEST */}
+          {/* Rutas exclusivas de Admin */}
           <Route 
-            path="/carrito" 
+            path="/admin/dashboard" 
             element={
-              <RoleBasedRoute allowedRoles={['USER', 'GUEST']}>
-                <PageWithLayout>
-                  <Carrito />
-                </PageWithLayout>
+              <RoleBasedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboardRouter />
               </RoleBasedRoute>
             } 
           />
-          
-          {/* Ruta por defecto */}
-          <Route path="/" element={<Navigate to="/catalogo" replace />} />
           
           {/* Ruta 404 */}
           <Route path="*" element={<NotFound />} />
